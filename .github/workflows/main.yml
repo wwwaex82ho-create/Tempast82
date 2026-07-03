@@ -1,0 +1,43 @@
+name: Build Android APK
+
+on:
+  push:
+    branches: [ main, master ]
+  workflow_dispatch: # این گزینه به شما اجازه می‌دهد دستوری هم کارهای ساخت را شروع کنید
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Install System Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ccache git libffi-dev libssl-dev autoconf automake libtool pkg-config cmake ninja-build textinfo unzip zip zlib1g-dev openjdk-17-jdk
+
+      - name: Install Buildozer and Cython
+        run: |
+          pip install --upgrade pip
+          pip install buildozer cython==0.29.33 flet
+
+      - name: Build APK with Buildozer
+        run: |
+          # دستور ساخت برنامه در حالت خودکار بدون پرسیدن سوال
+          buildozer android debug
+        env:
+          BUILDOZER_WARN_ON_ROOT: 0
+
+      - name: Upload APK Artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: Network-App-APK
+          path: bin/*.apk
+          
